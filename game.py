@@ -111,15 +111,22 @@ from map import Map
 pygame.init()
 
 
-SCREEN_WIDTH  = 1000
+SCREEN_WIDTH  = 1_000
 SCREEN_HEIGHT = 500
 
-RAY_COUNT = 1_000
-HALF_FOV = np.arctan(np.pi * 2/3)  # this is width, assumed by default 
-WALL_HEIGHT = 0.5
+RAY_COUNT = 800
+HALF_FOV = np.arctan(np.pi * 1/4)  # this is width, assumed by default 
+WALL_HEIGHT = 20
+
+ROTATING_SPEED = 0.1
+MOVEMENT_SPEED = 5
+
+SKY_BLUE = [90, 120, 255]
+GREEN = [150, 200, 150]
+WHITE = [255, 255, 255]
 
 win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-win.fill([255, 255, 255])
+win.fill(WHITE)
 
 pygame.display.set_caption('Rate racer!')
 
@@ -129,7 +136,7 @@ pygame.display.set_caption('Rate racer!')
 clock = pygame.time.Clock()
 font = pygame.font.SysFont('comicsans', 30, True)
 
-player = Player((250, 250), 0)
+player = Player((250, 250), np.pi/2)
 map = Map("./map.png", player)
 run = True
 
@@ -139,20 +146,25 @@ ray_x_delta = ray_xs[1] - ray_xs[0]
 depths  = np.zeros(RAY_COUNT)
 colours = np.zeros((RAY_COUNT, 3))
 
+
 while run:
     clock.tick(35)
     for i, ray_angle in enumerate(ray_angles):
         depths[i], colours[i] = map.emit_ray(ray_angle)
-    
+
+    win.fill(SKY_BLUE)
+    pygame.draw.rect(win, GREEN, (0, SCREEN_HEIGHT//2, SCREEN_WIDTH, SCREEN_HEIGHT//2))
     for ray_x, depth, colour in zip(ray_xs, depths, colours):
-        height = WALL_HEIGHT / depth * SCREEN_HEIGHT
+        height = min(WALL_HEIGHT / depth * SCREEN_HEIGHT, SCREEN_HEIGHT)   # clip so fatte na
+        vertical_displacement = min(player.z / depth * SCREEN_HEIGHT, SCREEN_HEIGHT)
+
         pygame.draw.rect(
             win,
             colour,
             (
-                round(SCREEN_WIDTH/2 + ray_x - ray_x_delta/2),
-                round(SCREEN_HEIGHT/2 - height/2),
-                round(ray_x_delta),
+                np.floor(SCREEN_WIDTH/2 + ray_x - ray_x_delta/2),
+                round(SCREEN_HEIGHT/2 - height/2 + vertical_displacement),
+                np.ceil(ray_x_delta),
                 round(height)
             )
         )
@@ -166,15 +178,19 @@ while run:
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_LEFT]:
-        player.rotate(-0.01)
+        player.rotate(-ROTATING_SPEED)
         
     if keys[pygame.K_RIGHT]:
-        player.rotate(0.01)
+        player.rotate(ROTATING_SPEED)
         
     if keys[pygame.K_UP]:
-        player.move(0.1)
+        player.move(MOVEMENT_SPEED)
 
     if keys[pygame.K_DOWN]:
-        player.move(-0.1)
+        player.move(-MOVEMENT_SPEED)
+
+    if keys[pygame.K_SPACE]:
+        player.jump() 
+    player.gravity_update()
 
 pygame.quit()

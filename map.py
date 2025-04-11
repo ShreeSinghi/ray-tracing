@@ -1,6 +1,9 @@
 from PIL import Image
 import numpy as np
 
+DARK_GREY = np.array([50, 50, 50])
+GREY = np.array([127, 127, 127])
+
 class Map():
     def __init__(self, map_file, player):
         self.map_file = map_file
@@ -12,10 +15,10 @@ class Map():
         self.color_map = np.array(image)
 
         # add world borders
-        self.color_map[0, :]  = (0, 0, 0)
-        self.color_map[-1, :] = (0, 0, 0)
-        self.color_map[:, 0]  = (0, 0, 0)
-        self.color_map[:, -1] = (0, 0, 0)
+        self.color_map[0, :]  = DARK_GREY
+        self.color_map[-1, :] = DARK_GREY
+        self.color_map[:, 0]  = DARK_GREY
+        self.color_map[:, -1] = DARK_GREY
 
         # whatever is not white is a wall
         WHITE = np.array([255, 255, 255]).reshape(1, 1, 3)
@@ -44,6 +47,9 @@ class Map():
                 current_y += movement_sign
 
         relative_position = np.array([current_x, current_y]) - self.player.position
-        depth = np.sin(angle) * np.linalg.norm(relative_position)
+        depth = np.cos(angle) * np.linalg.norm(relative_position)
 
-        return depth, self.color_map[int(current_y), int(current_x)]
+        color = self.color_map[round(current_y), round(current_x)]
+        ratio = min(1, 0.2 +  50 / depth)
+        mixed = color * ratio + GREY*(1-ratio)
+        return depth, mixed
