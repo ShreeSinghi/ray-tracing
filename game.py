@@ -138,6 +138,7 @@ font = pygame.font.SysFont('comicsans', 30, True)
 
 player = Player((250, 250), np.pi/2)
 map = Map("./map.png", player)
+
 run = True
 
 ray_angles = np.arctan(np.linspace(-1, 1, RAY_COUNT) * np.tan(HALF_FOV))

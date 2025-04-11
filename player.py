@@ -12,6 +12,10 @@ class Player():
     def move(self, delta):
         unit_delta = np.array((np.cos(self.angle), np.sin(self.angle)))
         self.position += delta * unit_delta
+
+        self.position[0] = np.clip(self.position[0], 0, self.world_width)
+        self.position[1] = np.clip(self.position[1], 0, self.world_height)
+
     
     def rotate(self, delta):
         self.angle += delta

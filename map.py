@@ -2,16 +2,15 @@ from PIL import Image
 import numpy as np
 
 DARK_GREY = np.array([50, 50, 50])
-GREY = np.array([127, 127, 127])
-
+GREY = np.array([40, 40, 40])
 class Map():
     def __init__(self, map_file, player):
         self.map_file = map_file
         self.player = player
         
         image = Image.open(self.map_file).convert("RGB")
-        
-        self.width, self.height = image.size
+
+        player.world_width, player.world_height = image.size
         self.color_map = np.array(image)
 
         # add world borders
@@ -50,6 +49,6 @@ class Map():
         depth = np.cos(angle) * np.linalg.norm(relative_position)
 
         color = self.color_map[round(current_y), round(current_x)]
-        ratio = min(1, 0.2 +  50 / depth)
+        ratio = min(1, 0.2 +  25 / depth)
         mixed = color * ratio + GREY*(1-ratio)
         return depth, mixed
