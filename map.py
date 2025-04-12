@@ -52,3 +52,43 @@ class Map():
         ratio = min(1, 0.2 +  25 / depth)
         mixed = color * ratio + GREY*(1-ratio)
         return depth, mixed
+    
+    def emit_rays(self, angles):      
+        ray_angles = (angles + self.player.angle) % (2 * np.pi)
+        is_ray_vertical =  ((np.pi*1/4 < ray_angles) & (ray_angles< np.pi*3/4)) | ((np.pi*5/4 < ray_angles) & (ray_angles < np.pi*7/4))
+
+        slopes = np.tan(ray_angles)
+        slopes[is_ray_vertical] = 1 / slopes[is_ray_vertical]
+
+        movement_signs = np.zeros_like(ray_angles)
+        movement_signs[is_ray_vertical]  = (ray_angles[is_ray_vertical] < np.pi) * 2 - 1
+        movement_signs[~is_ray_vertical] = 1 - 2 * ((np.pi*1/2 < ray_angles[~is_ray_vertical]) & (ray_angles[~is_ray_vertical] < np.pi * 3/2))
+        
+        movement_step = np.zeros((len(ray_angles), 2))
+
+        movement_step[is_ray_vertical,  0] = movement_signs[is_ray_vertical] * slopes[is_ray_vertical]
+        movement_step[is_ray_vertical,  1] = movement_signs[is_ray_vertical]
+
+        movement_step[~is_ray_vertical, 0] = movement_signs[~is_ray_vertical]
+        movement_step[~is_ray_vertical, 1] = movement_signs[~is_ray_vertical] * slopes[~is_ray_vertical]
+
+        current_position = np.zeros_like(movement_step) + self.player.position
+        is_ray_going = np.arange(len(angles))
+
+        while len(is_ray_going) > 0:
+            current_position[is_ray_going] += movement_step[is_ray_going]
+            is_ray_going = np.delete(
+                is_ray_going,
+                self.hit_map[np.round(current_position[is_ray_going, 1]).astype(int),
+                             np.round(current_position[is_ray_going, 0]).astype(int)]
+            )
+
+        relative_positions = current_position - self.player.position
+        depths = np.cos(angles) * np.linalg.norm(relative_positions, axis=1)
+        colors = self.color_map[np.round(current_position[:, 1]).astype(int),
+                                np.round(current_position[:, 0]).astype(int)]
+
+        ratio = np.clip(0.2 +  25 / depths, 0, 1)[:, np.newaxis]
+        mixed = colors * ratio + GREY*(1-ratio)
+
+        return depths, mixed

@@ -1,7 +1,7 @@
 import numpy as np
 
-GRAVITY = 2.5
-JUMP_SPEED = 5
+GRAVITY = 0.1
+JUMP_SPEED = 1.3
 class Player():
     def __init__(self, position, angle):
         self.position = np.array(position, dtype=float)
@@ -13,8 +13,8 @@ class Player():
         unit_delta = np.array((np.cos(self.angle), np.sin(self.angle)))
         self.position += delta * unit_delta
 
-        self.position[0] = np.clip(self.position[0], 0, self.world_width)
-        self.position[1] = np.clip(self.position[1], 0, self.world_height)
+        self.position[0] = np.clip(self.position[0], 2, self.world_width-2)
+        self.position[1] = np.clip(self.position[1], 2, self.world_height-2)
 
     
     def rotate(self, delta):
