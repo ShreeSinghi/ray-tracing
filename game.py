@@ -10,7 +10,7 @@ pygame.init()
 SCREEN_WIDTH  = 1_500
 SCREEN_HEIGHT = 800
 
-RAY_COUNT = 50
+RAY_COUNT = 1501
 HALF_FOV = np.arctan(np.pi * 1/4)  # this is width, assumed by default 
 WALL_HEIGHT = 20
 
